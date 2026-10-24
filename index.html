@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marble Pop Sort – Android Demo</title>
+<meta name="description" content="Marble Pop Sort – a colorful marble sorting puzzle game for Android Studio. Download the demo APK.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<meta property="og:title" content="Marble Pop Sort – Android Demo">
+<meta property="og:description" content="Colorful marble sorting puzzle game. Download the demo APK.">
+<meta property="og:image" content="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-1:#2f8cf0; --sky-2:#6cc6ff; --sky-3:#c9ecff;
+    --wood:#a8622c; --wood-dark:#6e3a16;
+    --red:#ff3b3b; --red-dark:#c81e1e;
+    --yellow:#ffd23f; --green:#43c443; --purple:#a64cff; --blue:#2f7dff; --orange:#ff9a1f;
+    --ink:#1d2a4a; --muted:#56658a; --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Fredoka",system-ui,sans-serif;color:var(--ink);
+    background:linear-gradient(180deg,var(--sky-1) 0%,var(--sky-2) 38%,var(--sky-3) 70%,#eef8ff 100%);
+    min-height:100vh;overflow-x:hidden;
+  }
+  /* floating clouds + marbles */
+  .bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .cloud{position:absolute;background:#fff;border-radius:999px;opacity:.75;filter:blur(1px)}
+  .cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+  .cloud::before{width:55%;height:160%;left:15%;bottom:20%}
+  .cloud::after{width:40%;height:120%;right:12%;bottom:25%}
+  .c1{width:220px;height:60px;top:9%;left:-40px;animation:drift 60s linear infinite}
+  .c2{width:300px;height:80px;top:28%;right:-80px;animation:drift 80s linear infinite reverse}
+  .c3{width:180px;height:50px;top:62%;left:10%;opacity:.5;animation:drift 70s linear infinite}
+  @keyframes drift{from{transform:translateX(-10vw)}to{transform:translateX(110vw)}}
+  .marble{position:absolute;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%,#fff 0 9%,transparent 10%),radial-gradient(circle at 40% 35%,var(--c) 0,var(--cd) 75%);
+    box-shadow:inset -6px -8px 14px rgba(0,0,0,.25),0 8px 16px rgba(0,40,100,.18);
+    animation:float 7s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 16px}
+
+  /* header */
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  header .studio img{height:44px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.2))}
+  header nav a{color:#fff;text-decoration:none;font-weight:600;margin-left:18px;text-shadow:0 2px 4px rgba(0,0,0,.2)}
+  header nav a:hover{text-decoration:underline}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:24px 0 56px}
+  .hero .logo{width:100%;max-width:520px;display:block;filter:drop-shadow(0 12px 18px rgba(60,30,0,.3));animation:pop .8s cubic-bezier(.2,1.6,.4,1) both}
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .tagline{font-size:1.35rem;color:#fff;font-weight:500;margin:18px 0 26px;text-shadow:0 2px 6px rgba(0,40,100,.35);max-width:480px}
+  .cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:12px;text-decoration:none;font-weight:700;font-size:1.25rem;
+    padding:16px 30px;border-radius:999px;color:#fff;
+    background:linear-gradient(180deg,#ff6a5c,var(--red) 55%,var(--red-dark));
+    box-shadow:0 6px 0 #9c1414,0 12px 22px rgba(160,20,20,.35);
+    border:3px solid #fff;transition:transform .12s,box-shadow .12s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #9c1414,0 6px 12px rgba(160,20,20,.3)}
+  .btn svg{width:28px;height:28px}
+  .btn small{display:block;font-size:.8rem;font-weight:500;opacity:.9}
+  .btn.ghost{background:rgba(255,255,255,.2);box-shadow:none;font-size:1.05rem;padding:13px 24px;backdrop-filter:blur(4px)}
+  .meta{color:#fff;margin-top:16px;font-size:.95rem;opacity:.95;text-shadow:0 1px 3px rgba(0,40,100,.3)}
+
+  .phone{justify-self:center;position:relative;width:min(340px,80vw)}
+  .phone .icon{width:100%;border-radius:22%;display:block;
+    box-shadow:0 0 0 8px #fff,0 24px 50px rgba(0,40,110,.35);
+    animation:float 6s ease-in-out infinite}
+  .qr{position:absolute;right:-26px;bottom:-30px;background:#fff;padding:10px 10px 6px;border-radius:18px;
+    box-shadow:0 12px 26px rgba(0,40,110,.25);text-align:center;font-size:.75rem;font-weight:600;color:var(--muted)}
+  .qr #qrcode{width:104px;height:104px}
+  .qr #qrcode img,.qr #qrcode canvas{width:104px!important;height:104px!important}
+
+  /* sections */
+  section{padding:56px 0}
+  h2{font-size:2.4rem;text-align:center;margin-bottom:8px;color:var(--yellow);-webkit-text-stroke:2px var(--wood-dark);paint-order:stroke fill;text-shadow:0 4px 0 var(--wood-dark),0 8px 14px rgba(0,0,0,.2)}
+  .sub{text-align:center;color:var(--muted);margin-bottom:34px;font-size:1.1rem}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{background:var(--card);border-radius:24px;padding:26px 22px;
+    box-shadow:0 6px 0 rgba(0,40,110,.08),0 14px 30px rgba(0,40,110,.12);border:3px solid #fff}
+  .card .dot{width:56px;height:56px;border-radius:50%;margin-bottom:14px;
+    background:radial-gradient(circle at 32% 28%,#fff 0 10%,transparent 11%),radial-gradient(circle at 40% 35%,var(--c),var(--cd) 78%);
+    box-shadow:inset -5px -7px 12px rgba(0,0,0,.22)}
+  .card h3{font-size:1.25rem;margin-bottom:6px}
+  .card p{color:var(--muted);line-height:1.5}
+
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .step{background:linear-gradient(180deg,#c47838,var(--wood));color:#fff;border-radius:24px;padding:24px 22px 24px 76px;position:relative;
+    box-shadow:0 6px 0 var(--wood-dark),0 14px 26px rgba(80,40,0,.25);border:3px solid #e9a868}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:20px;width:44px;height:44px;border-radius:50%;
+    display:grid;place-items:center;font-weight:700;font-size:1.3rem;color:var(--wood-dark);
+    background:radial-gradient(circle at 35% 30%,#fff7c2,var(--yellow) 60%,#e2a800)}
+  .step h3{margin-bottom:4px}
+  .step p{opacity:.95;line-height:1.45}
+
+  .install{background:#fff;border-radius:28px;padding:30px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;
+    box-shadow:0 14px 30px rgba(0,40,110,.12)}
+  .install ol{padding-left:22px;line-height:1.9;color:var(--ink)}
+  .install ol b{color:var(--red-dark)}
+  .install .box{background:#f0f8ff;border-radius:20px;padding:22px;text-align:center}
+  .install .box p{color:var(--muted);margin-bottom:16px}
+
+  footer{text-align:center;padding:40px 0 50px;color:var(--muted)}
+  footer img{height:54px;margin-bottom:10px}
+  footer a{color:var(--blue)}
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr;text-align:center;gap:50px}
+    .hero .logo,.tagline{margin-left:auto;margin-right:auto}
+    .cta{justify-content:center}
+    .grid,.steps{grid-template-columns:1fr}
+    .install{grid-template-columns:1fr}
+    .qr{display:none}
+    header nav{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <div class="marble" style="--c:#ff6a5c;--cd:#c81e1e;width:46px;height:46px;top:16%;left:6%"></div>
+  <div class="marble" style="--c:#6ef06e;--cd:#1e9a1e;width:34px;height:34px;top:48%;left:3%;animation-delay:-2s"></div>
+  <div class="marble" style="--c:#c98aff;--cd:#7a22d6;width:40px;height:40px;top:72%;right:5%;animation-delay:-4s"></div>
+  <div class="marble" style="--c:#6aa8ff;--cd:#1f56d0;width:30px;height:30px;top:12%;right:12%;animation-delay:-1s"></div>
+  <div class="marble" style="--c:#ffc163;--cd:#e57a00;width:26px;height:26px;top:86%;left:30%;animation-delay:-3s"></div>
+</div>
+
+<div class="wrap">
+  <header>
+    <a class="studio" href="#"><img src="assets/segadroid.png" alt="SegaDroid"></a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#how">How to play</a>
+      <a href="#install">Install</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <img class="logo" src="assets/logo.png" alt="Marble Pop Sort">
+      <p class="tagline">Drop, pop and sort colorful marbles into matching trays. A relaxing puzzle game that's easy to learn and hard to put down.</p>
+      <div class="cta">
+        <a class="btn apk-link" href="#" target="_blank" rel="noopener" download>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18a.38.38 0 00-.66-.38l-1.86 3.22A11.4 11.4 0 0012 8.1c-1.78 0-3.46.38-4.92 1.04L5.22 5.92a.38.38 0 00-.66.38L6.4 9.48A10.8 10.8 0 001 18h22a10.8 10.8 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/></svg>
+          <span>Download APK<small>Free demo for Android</small></span>
+        </a>
+        <a class="btn ghost" href="#features">See features</a>
+      </div>
+      <p class="meta">Free demo • Built with Android Studio</p>
+    </div>
+    <div class="phone">
+      <img class="icon" src="assets/icon.png" alt="Marble Pop Sort game icon">
+      <div class="qr"><div id="qrcode"></div>Scan to download</div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <h2>Game features</h2>
+    <p class="sub">Everything a buyer gets in the source code</p>
+    <div class="grid">
+      <div class="card"><div class="dot" style="--c:#ff6a5c;--cd:#c81e1e"></div><h3>Satisfying gameplay</h3><p>Tap to drop marbles into trays and pop them when a color is complete. Simple to start, full of strategy.</p></div>
+      <div class="card"><div class="dot" style="--c:#ffc163;--cd:#e57a00"></div><h3>Many levels</h3><p>Hand-tuned levels with growing difficulty keep players coming back for more.</p></div>
+      <div class="card"><div class="dot" style="--c:#6ef06e;--cd:#1e9a1e"></div><h3>Ready to monetize</h3><p>Ads integration ready, so you can publish to Google Play and start earning fast.</p></div>
+      <div class="card"><div class="dot" style="--c:#c98aff;--cd:#7a22d6"></div><h3>Easy to reskin</h3><p>Clean project structure makes it simple to change graphics, colors and sounds.</p></div>
+      <div class="card"><div class="dot" style="--c:#6aa8ff;--cd:#1f56d0"></div><h3>Android Studio project</h3><p>Open, build and run. Full source code with documentation included.</p></div>
+      <div class="card"><div class="dot" style="--c:#ff7be5;--cd:#c21fa3"></div><h3>Bright, polished art</h3><p>Glossy marbles, playful UI and smooth animations that look great on any screen.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="on-sky">
+  <div class="wrap">
+    <h2>How to play</h2>
+    <p class="sub">Three steps to a sorted board</p>
+    <div class="steps">
+      <div class="step"><h3>Pick a marble</h3><p>Tap a marble to launch it toward the trays.</p></div>
+      <div class="step"><h3>Match the color</h3><p>Land each marble in a tray of the same color.</p></div>
+      <div class="step"><h3>Pop &amp; clear</h3><p>Fill a tray to pop it. Clear the board to win the level.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Install the demo</h2>
+    <p class="sub">The APK is not from Google Play, so Android asks for permission once</p>
+    <div class="install">
+      <ol>
+        <li>Tap <b>Download APK</b> on your Android phone.</li>
+        <li>Open the downloaded <b>MarblePopSort.apk</b>.</li>
+        <li>If asked, allow <b>Install unknown apps</b> for your browser.</li>
+        <li>Tap <b>Install</b>, then open the game and play.</li>
+      </ol>
+      <div class="box">
+        <p>On a computer? Download the APK and send it to your phone, or scan the QR code above.</p>
+        <a class="btn apk-link" href="#" target="_blank" rel="noopener" download>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3v11.17l3.59-3.58L17 12l-5 5-5-5 1.41-1.41L11 14.17V3h1zM5 19h14v2H5z"/></svg>
+          <span>Download APK</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <img src="assets/segadroid.png" alt="SegaDroid"><br>
+  © <span id="yr"></span> SegaDroid Studio. All rights reserved.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  // ▼▼ Put your APK link here ▼▼
+  // Tip: a GitHub Release link is more reliable, e.g.
+  // https://github.com/segadroidmail/marble-pop-sort/releases/latest/download/MarblePopSort.apk
+  const APK_URL = "https://github.com/segadroidmail/marble-pop-sort/raw/refs/heads/main/MarblePopSort.apk";
+
+  document.querySelectorAll(".apk-link").forEach(a => a.href = APK_URL);
+  document.getElementById("yr").textContent = new Date().getFullYear();
+  try {
+    new QRCode(document.getElementById("qrcode"), {text: APK_URL, width: 208, height: 208, colorDark: "#1d2a4a", colorLight: "#ffffff"});
+  } catch (e) { document.querySelector(".qr").style.display = "none"; }
+</script>
+</body>
+</html>
